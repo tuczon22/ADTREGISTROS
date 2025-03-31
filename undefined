@@ -1,0 +1,29 @@
+// First, clear all existing documents (optional - depends on requirement)
+const querySnapshot = await getDocs(jobsRef);
+const batch = writeBatch(db); 
+querySnapshot.forEach(doc => {
+    batch.delete(doc.ref);
+});
+await batch.commit();
+
+// Then, add the new jobs
+for (const job of importedJobs) {
+    await addDoc(jobsRef, job);
+}
+
+alert('Historial importado exitosamente desde Excel.');
+
+// Initial fetch
+const querySnapshot = await getDocs(jobsRef);
+const firebaseJobs = querySnapshot.docs.map(doc => doc.data());
+localStorage.setItem('jobs', JSON.stringify(firebaseJobs));
+loadHistorial();
+updateChart();
+
+// Real-time listener
+onSnapshot(jobsRef, (snapshot) => {
+    const updatedJobs = snapshot.docs.map(doc => doc.data());
+    localStorage.setItem('jobs', JSON.stringify(updatedJobs));
+    loadHistorial();
+    updateChart();
+});
